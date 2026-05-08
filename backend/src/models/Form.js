@@ -17,6 +17,14 @@ const QuestionSchema = new mongoose.Schema({
     }
 });
 
+QuestionSchema.path('options').validate(function (value) {
+    const choiceTypes = ['single_choice', 'multiple_choice', 'dropdown'];
+    if (choiceTypes.includes(this.type)) {
+        return Array.isArray(value) && value.length >= 2;
+    }
+    return true;
+}, 'Choice-type questions must have at least 2 options.');
+
 const FormSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -30,7 +38,7 @@ const FormSchema = new mongoose.Schema({
     },
     isOpen: {
         type: Boolean,
-        default: true
+        default: false
     },
     questions: [QuestionSchema]
 }, { timestamps: true });

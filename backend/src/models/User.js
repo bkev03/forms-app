@@ -25,8 +25,8 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // signup function
-UserSchema.statics.signup = async function(username, email, password) {
-    
+UserSchema.statics.signup = async function(username, email, password, role = 'filler') {
+
     if (!username || !email || !password) {
         throw Error("All fields must be filled!");
     }
@@ -36,7 +36,10 @@ UserSchema.statics.signup = async function(username, email, password) {
     if (!validator.isStrongPassword(password)) {
         throw Error("Your password isn't strong enough!");
     }
-    
+    if (!['editor', 'filler'].includes(role)) {
+        throw Error("Invalid role.");
+    }
+
     const alreadyInUse = await User.findOne({
         $or: [
             { username: username },
@@ -47,7 +50,7 @@ UserSchema.statics.signup = async function(username, email, password) {
     if (alreadyInUse) {
         const usernameAlreadyInUse = alreadyInUse.username === username;
         const emailAlreadyInUse = alreadyInUse.email === email;
-        
+
         if (usernameAlreadyInUse && emailAlreadyInUse) {
             throw Error('Username and email already in use.');
         } else if (usernameAlreadyInUse) {
@@ -61,7 +64,7 @@ UserSchema.statics.signup = async function(username, email, password) {
     const salt = await bcrypt.genSalt(saltRounds);
     const hash = await bcrypt.hash(password, salt);
 
-    const user = await this.create({ username, email, password: hash, role: "filler" });
+    const user = await this.create({ username, email, password: hash, role });
 
     return user;
 }

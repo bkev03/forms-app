@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { handleError } from "../utils/handleError.js";
 
 function createToken(_id) {
     return jwt.sign({_id}, process.env.SECRET, { expiresIn: '3d' });
@@ -8,13 +9,12 @@ function createToken(_id) {
 
 export async function loginUser(req, res) {
     try {
-        const { username, email, password } = req.body;
-        
-        const user = await User.login(email, password);
+        const { email, password } = req.body;
 
+        const user = await User.login(email, password);
         const token = createToken(user._id);
 
-        res.status(200).json({email, token, message: "Successful login."});
+        res.status(200).json({ _id: user._id, email, role: user.role, token, message: "Successful login." });
     } catch (error) {
         console.error("Error in loginUser controller:\n", error);
         res.status(400).json({ error: error.message });
@@ -23,13 +23,12 @@ export async function loginUser(req, res) {
 
 export async function signupUser(req, res) {
     try {
-        const { username, email, password } = req.body;
-        
-        const newUser = await User.signup(username, email, password);
+        const { username, email, password, role } = req.body;
 
+        const newUser = await User.signup(username, email, password, role);
         const token = createToken(newUser._id);
 
-        res.status(201).json({email, token, message: "Successful signup."});
+        res.status(201).json({ _id: newUser._id, email, role: newUser.role, token, message: "Successful signup." });
     } catch (error) {
         console.error("Error in signupUser controller:\n", error);
         res.status(400).json({ error: error.message });
@@ -37,36 +36,28 @@ export async function signupUser(req, res) {
 }
 
 export async function getCurrentUser(req, res) {
-    // TODO
+    res.status(200).json(req.user);
 }
 
 
 // currently just for testing purposes:
 
-export async function getUserById(req, res) {
-    try {
-        const userId = req.params.id;
-        const user = await User.findById(userId);
-        res.status(200).json(user);
-    } catch (error) {
-        console.error("Error in getUserById controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-}
-
 export async function getAllUsers(req, res) {
     try {
-        const users = await User.find();
+        const users = await User.find().select("-password");
         res.status(200).json(users);
     } catch (error) {
-        console.error("Error in getAllUsers controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "getAllUsers controller");
     }
 }
 
 export async function createUser(req, res) {
     try {
         const { username, email, password, role } = req.body;
+
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: "All fields must be filled!" });
+        }
 
         const alreadyInUse = await User.findOne({
             $or: [
@@ -78,26 +69,24 @@ export async function createUser(req, res) {
         if (alreadyInUse) {
             const usernameAlreadyInUse = alreadyInUse.username === username;
             const emailAlreadyInUse = alreadyInUse.email === email;
-            
+
             if (usernameAlreadyInUse && emailAlreadyInUse) {
-                return res.status(400).json({ message: "This username and email is already in use!" });
+                return res.status(400).json({ error: "This username and email is already in use!" });
             } else if (usernameAlreadyInUse) {
-                return res.status(400).json({ message: "This username is already in use!" });
+                return res.status(400).json({ error: "This username is already in use!" });
             } else {
-                return res.status(400).json({ message: "This email is already in use!" });
+                return res.status(400).json({ error: "This email is already in use!" });
             }
         }
 
-        const saltRounds = 10;
-        const salt = await bcrypt.genSalt(saltRounds);
+        const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
 
         const newUser = new User({ username, email, password: hash, role });
         await newUser.save();
         res.status(201).json(newUser);
     } catch (error) {
-        console.error("Error in createUser controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "createUser controller");
     }
 }
 
@@ -117,21 +106,33 @@ export async function updateUser(req, res) {
         if (alreadyInUse) {
             const usernameAlreadyInUse = alreadyInUse.username === username;
             const emailAlreadyInUse = alreadyInUse.email === email;
-            
+
             if (usernameAlreadyInUse && emailAlreadyInUse) {
-                return res.status(400).json({ message: "This username and email is already in use!" });
+                return res.status(400).json({ error: "This username and email is already in use!" });
             } else if (usernameAlreadyInUse) {
-                return res.status(400).json({ message: "This username is already in use!" });
+                return res.status(400).json({ error: "This username is already in use!" });
             } else {
-                return res.status(400).json({ message: "This email is already in use!" });
+                return res.status(400).json({ error: "This email is already in use!" });
             }
         }
 
-        const updatedUser = await User.findByIdAndUpdate(userId, { username, email, password, role });
+        const updateData = { username, email, role };
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            updateData.password = await bcrypt.hash(password, salt);
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updateData,
+            { new: true, runValidators: true }
+        );
+        if (!updatedUser) {
+            return res.status(404).json({ error: "User not found." });
+        }
         res.status(200).json(updatedUser);
     } catch (error) {
-        console.error("Error in updateUser controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "updateUser controller");
     }
 }
 
@@ -140,11 +141,10 @@ export async function deleteUser(req, res) {
         const userId = req.params.id;
         const deletedUser = await User.findByIdAndDelete(userId);
         if (!deletedUser) {
-            return res.status(404).json({ message: "User not found." });
+            return res.status(404).json({ error: "User not found." });
         }
         res.status(200).json({ message: "User deleted successfully." });
     } catch (error) {
-        console.error("Error in deleteUser controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "deleteUser controller");
     }
 }

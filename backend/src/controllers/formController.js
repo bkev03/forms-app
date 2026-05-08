@@ -1,24 +1,38 @@
-import Form from "../models/Form.js"
+import Form from "../models/Form.js";
+import Response from "../models/Response.js";
+import { handleError } from "../utils/handleError.js";
 
 export async function createForm(req, res) {
     try {
-        const { title, description, owner, isOpen, questions } = req.body;
-        const newForm = new Form({ title, description, owner, isOpen, questions });
+        const { title, description, isOpen, questions } = req.body;
+        const newForm = new Form({
+            title,
+            description,
+            owner: req.user._id,
+            isOpen,
+            questions
+        });
         await newForm.save();
         res.status(201).json(newForm);
     } catch (error) {
-        console.error("Error in createForm controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "createForm controller");
     }
 }
 
 export async function getAllOpenForms(req, res) {
     try {
-        const openForms = await Form.find({ isOpen: true });
-        res.status(200).json(openForms);
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await Promise.all([
+            Form.find({ isOpen: true }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+            Form.countDocuments({ isOpen: true })
+        ]);
+
+        res.status(200).json({ data, pagination: { total, page, limit, totalPages: Math.ceil(total / limit) } });
     } catch (error) {
-        console.error("Error in getAllOpenForms controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "getAllOpenForms controller");
     }
 }
 
@@ -26,41 +40,80 @@ export async function getFormById(req, res) {
     try {
         const formId = req.params.id;
         const form = await Form.findById(formId);
+        if (!form) {
+            return res.status(404).json({ error: "Form not found." });
+        }
+        if (!form.isOpen) {
+            const isOwner = req.user && form.owner.toString() === req.user._id.toString();
+            if (!isOwner) {
+                return res.status(404).json({ error: "Form not found." });
+            }
+        }
         res.status(200).json(form);
     } catch (error) {
-        console.error("Error in getFormById controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "getFormById controller");
     }
 }
 
 export async function getMyForms(req, res) {
-    // TODO
+    try {
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await Promise.all([
+            Form.find({ owner: req.user._id }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+            Form.countDocuments({ owner: req.user._id })
+        ]);
+
+        res.status(200).json({ data, pagination: { total, page, limit, totalPages: Math.ceil(total / limit) } });
+    } catch (error) {
+        return handleError(error, res, "getMyForms controller");
+    }
 }
 
 export async function updateForm(req, res) {
     try {
         const formId = req.params.id;
-        const { title, description, owner, isOpen, questions } = req.body;
-        
-        const updatedForm = await Form.findByIdAndUpdate(formId, { title, description, owner, isOpen, questions })
+        const { title, description, isOpen, questions } = req.body;
+
+        const form = await Form.findById(formId);
+        if (!form) {
+            return res.status(404).json({ error: "Form not found." });
+        }
+        if (form.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "You do not own this form." });
+        }
+
+        if (title !== undefined) form.title = title;
+        if (description !== undefined) form.description = description;
+        if (isOpen !== undefined) form.isOpen = isOpen;
+        if (questions !== undefined) form.questions = questions;
+
+        const updatedForm = await form.save();
         res.status(200).json(updatedForm);
     } catch (error) {
-        console.error("Error in updateForm controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "updateForm controller");
     }
 }
 
 export async function deleteForm(req, res) {
     try {
         const formId = req.params.id;
-        const deletedForm = await Form.findByIdAndDelete(formId);
-        if (!deleteForm) {
-            return res.status(404).json({ message: "Form not found." });
+
+        const form = await Form.findById(formId);
+        if (!form) {
+            return res.status(404).json({ error: "Form not found." });
         }
+        if (form.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "You do not own this form." });
+        }
+
+        await Form.findByIdAndDelete(formId);
+        await Response.deleteMany({ formId });
         res.status(200).json({ message: "Form deleted successfully." });
     } catch (error) {
-        console.error("Error in deleteForm controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "deleteForm controller");
     }
 }
 
@@ -68,17 +121,20 @@ export async function changeStatus(req, res) {
     try {
         const formId = req.params.id;
         const form = await Form.findById(formId);
-
-        if (form.isOpen) {
-            await Form.findByIdAndUpdate(formId, { $set: { isOpen: false } });
-        } else {
-            await Form.findByIdAndUpdate(formId, { $set: { isOpen: true } });
+        if (!form) {
+            return res.status(404).json({ error: "Form not found." });
+        }
+        if (form.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "You do not own this form." });
         }
 
-        const updatedForm = await Form.findById(formId).lean();
+        const updatedForm = await Form.findByIdAndUpdate(
+            formId,
+            { $set: { isOpen: !form.isOpen } },
+            { new: true }
+        );
         res.status(200).json(updatedForm);
     } catch (error) {
-        console.error("Error in changeStatus controller:\n", error);
-        res.status(500).json({ message: "Internal server error." });
+        return handleError(error, res, "changeStatus controller");
     }
 }
