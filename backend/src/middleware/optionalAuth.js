@@ -10,7 +10,7 @@ export const optionalAuth = async (req, res, next) => {
     const token = authorization.split(" ")[1];
 
     try {
-        const { _id } = jwt.verify(token, process.env.SECRET);
+        const { _id } = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(_id).select("-password");
         if (user) {
             req.user = user;

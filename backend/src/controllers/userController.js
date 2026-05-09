@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
 function createToken(_id) {
-    return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '3d' });
+    return jwt.sign({ _id }, process.env.JWT_SECRET, { expiresIn: '3d' });
 }
 
 export async function loginUser(req, res) {
