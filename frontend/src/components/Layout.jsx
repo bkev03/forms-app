@@ -13,7 +13,7 @@ export default function Layout() {
     return (
         <div className="app">
             <header className="header">
-                <Link to="/" className="logo">FormsApp</Link>
+                <Link to="/" className="logo">QuickForms</Link>
                 <nav className="nav">
                     <NavLink to="/" end>Home</NavLink>
                     {user && user.role === 'editor' && (

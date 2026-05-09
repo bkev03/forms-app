@@ -40,12 +40,16 @@ export default function MyResponsesPage() {
                 <p>You haven't submitted any responses yet. <Link to="/">Browse open forms</Link>.</p>
             )}
             <ul className="form-list">
-                {responses.map((response) => (
-                    <li key={response._id} className="card">
-                        <p>Submitted: {new Date(response.createdAt).toLocaleString()}</p>
-                        <Link to={`/responses/${response._id}`}>View details →</Link>
-                    </li>
-                ))}
+                {responses.map((response) => {
+                    const formTitle = response.formId?.title || <em>(form deleted)</em>;
+                    return (
+                        <li key={response._id} className="card">
+                            <h2>{formTitle}</h2>
+                            <p>Submitted: {new Date(response.createdAt).toLocaleString()}</p>
+                            <Link to={`/responses/${response._id}`}>View details →</Link>
+                        </li>
+                    );
+                })}
             </ul>
             <Pagination
                 pagination={pagination}

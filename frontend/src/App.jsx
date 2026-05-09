@@ -43,9 +43,11 @@ export default function App() {
 
 function NotFound() {
     return (
-        <div className="card">
-            <h1>404 — page not found</h1>
-            <p><a href="/">Back to home</a></p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
+            <div className="card" style={{ maxWidth: '400px', width: '100%' }}>
+                <h1>404 - Page Not Found</h1>
+                <p><a href="/">Back to home</a></p>
+            </div>
         </div>
     );
 }
