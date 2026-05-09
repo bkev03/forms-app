@@ -1,3 +1,24 @@
+:root {
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --primary-soft: #eef2ff;
+    --danger: #dc2626;
+    --danger-hover: #b91c1c;
+    --danger-soft: #fee2e2;
+    --success-soft: #d1fae5;
+    --success-text: #065f46;
+    --warning-soft: #fef3c7;
+    --warning-text: #92400e;
+    --text: #1f2937;
+    --text-soft: #6b7280;
+    --border: #e5e7eb;
+    --border-strong: #d1d5db;
+    --bg: #f5f3ff;
+    --card-bg: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.05);
+    --radius: 10px;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -5,76 +26,133 @@
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f5f5f5;
-    color: #222;
-    line-height: 1.5;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
 }
 
 h1, h2 {
     margin-top: 0;
+    color: var(--text);
+}
+
+h1 {
+    font-size: 1.75rem;
+}
+
+h2 {
+    font-size: 1.25rem;
 }
 
 a {
-    color: #2563eb;
+    color: var(--primary);
+    text-decoration: none;
 }
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- Buttons --- */
 
 button {
     cursor: pointer;
     padding: 0.5rem 1rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-strong);
     background: #fff;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 0.95rem;
     font-family: inherit;
+    color: var(--text);
+    transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+}
+
+button:hover:not(:disabled) {
+    background: var(--primary-soft);
+    border-color: var(--primary);
 }
 
 button:disabled {
-    opacity: 0.6;
+    opacity: 0.55;
     cursor: not-allowed;
 }
 
-button.btn-primary,
 .btn-primary {
-    background: #2563eb;
+    background: var(--primary);
     color: #fff;
-    border-color: #2563eb;
+    border-color: var(--primary);
 }
 
-button.btn-danger,
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #fff;
+}
+
 .btn-danger {
-    color: #dc2626;
-    border-color: #dc2626;
+    color: var(--danger);
+    border-color: var(--danger);
     background: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: var(--danger-soft);
+    color: var(--danger-hover);
+    border-color: var(--danger-hover);
 }
 
 .btn-link {
     background: none;
     border: none;
-    color: #2563eb;
+    color: var(--primary);
     text-decoration: underline;
     padding: 0;
     font-size: 0.95rem;
 }
 
+.btn-link:hover {
+    color: var(--primary-hover);
+    background: none;
+    border-color: transparent;
+}
+
 .btn-link-button {
     text-decoration: none;
+    display: inline-block;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    border: 1px solid var(--primary);
 }
+
+.btn-link-button:hover {
+    text-decoration: none;
+}
+
+/* --- Forms --- */
 
 input, textarea, select {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
     font-size: 0.95rem;
     font-family: inherit;
+    background: #fff;
+    color: var(--text);
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
 }
 
 label {
     display: block;
     margin-bottom: 1rem;
     font-weight: 500;
+    color: var(--text);
 }
 
 label.checkbox,
@@ -84,21 +162,39 @@ label.radio {
     font-weight: normal;
     margin-bottom: 0.4rem;
     gap: 0.5rem;
+    cursor: pointer;
 }
 
 label.checkbox input,
 label.radio input {
     width: auto;
     margin: 0;
+    accent-color: var(--primary);
 }
 
 label small {
     display: block;
     font-weight: normal;
-    color: #666;
+    color: var(--text-soft);
     font-size: 0.85rem;
     margin-top: 0.25rem;
 }
+
+fieldset {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    background: #fafaff;
+}
+
+legend {
+    font-weight: 600;
+    padding: 0 0.5rem;
+    color: var(--text-soft);
+}
+
+/* --- Layout --- */
 
 .app {
     min-height: 100vh;
@@ -106,7 +202,8 @@ label small {
 
 .header {
     background: #fff;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
     padding: 0 1.5rem;
     display: flex;
     align-items: center;
@@ -115,11 +212,17 @@ label small {
 }
 
 .logo {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    color: #222;
+    color: var(--primary);
     text-decoration: none;
     padding: 1rem 0;
+    letter-spacing: -0.01em;
+}
+
+.logo:hover {
+    text-decoration: none;
+    color: var(--primary-hover);
 }
 
 .nav {
@@ -130,19 +233,27 @@ label small {
 }
 
 .nav a {
-    color: #444;
+    color: var(--text-soft);
     text-decoration: none;
     padding: 0.5rem 0;
     font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: color 0.12s, border-color 0.12s;
+}
+
+.nav a:hover {
+    color: var(--primary);
+    text-decoration: none;
 }
 
 .nav a.active {
-    color: #2563eb;
+    color: var(--primary);
+    border-bottom-color: var(--primary);
 }
 
 .user-info {
     font-size: 0.85rem;
-    color: #666;
+    color: var(--text-soft);
 }
 
 .main {
@@ -151,22 +262,39 @@ label small {
     padding: 0 1rem;
 }
 
+/* --- Cards --- */
+
 .card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     padding: 1.5rem;
     margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
 }
 
+.card h2 a {
+    color: var(--text);
+    text-decoration: none;
+}
+
+.card h2 a:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* --- Errors --- */
+
 .error {
-    background: #fee;
-    border: 1px solid #f99;
-    color: #c00;
-    padding: 0.75rem;
-    border-radius: 4px;
+    background: var(--danger-soft);
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
     margin: 1rem 0;
 }
+
+/* --- Lists & headers --- */
 
 .form-list {
     list-style: none;
@@ -191,62 +319,86 @@ label small {
     margin-top: 1rem;
 }
 
-.actions button,
 .actions a {
     font-size: 0.9rem;
-    text-decoration: none;
-    color: #2563eb;
+    color: var(--primary);
+    padding: 0.45rem 0.6rem;
+    border-radius: 5px;
 }
 
-.actions a {
-    padding: 0.5rem 0.5rem;
+.actions a:hover {
+    background: var(--primary-soft);
+    text-decoration: none;
 }
+
+.actions button {
+    font-size: 0.9rem;
+}
+
+/* --- Badges --- */
 
 .badge {
     display: inline-block;
-    padding: 0.15rem 0.5rem;
+    padding: 0.2rem 0.6rem;
     border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 600;
 }
 
 .badge-open {
-    background: #d4f4dd;
-    color: #166534;
+    background: var(--success-soft);
+    color: var(--success-text);
 }
 
 .badge-draft {
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--warning-soft);
+    color: var(--warning-text);
 }
 
 .required {
-    color: #dc2626;
+    color: var(--danger);
     margin-left: 0.25rem;
 }
+
+/* --- Question fields (filling) --- */
 
 .question-field {
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border);
+}
+
+.question-field:last-of-type {
+    border-bottom: none;
+    margin-bottom: 1rem;
 }
 
 .question-field label {
     font-size: 1rem;
+    color: var(--text);
 }
 
 .options {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.35rem;
 }
 
+/* --- Question editor (authoring) --- */
+
 .question-editor {
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 1rem;
+    background: var(--primary-soft);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
     margin-bottom: 1rem;
+}
+
+.question-editor input,
+.question-editor textarea,
+.question-editor select {
+    background: #fff;
 }
 
 .question-editor-header {
@@ -255,6 +407,7 @@ label small {
     justify-content: space-between;
     margin-bottom: 1rem;
     font-weight: 600;
+    color: var(--text);
 }
 
 .question-editor-header .actions {
@@ -273,7 +426,10 @@ label small {
 
 .option-row button {
     flex-shrink: 0;
+    padding: 0.5rem 0.75rem;
 }
+
+/* --- Pagination --- */
 
 .pagination {
     display: flex;
@@ -281,7 +437,10 @@ label small {
     justify-content: center;
     gap: 1rem;
     margin: 2rem 0;
+    color: var(--text-soft);
 }
+
+/* --- Answers --- */
 
 .answer-list {
     list-style: none;
@@ -289,25 +448,19 @@ label small {
 }
 
 .answer-row {
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--primary-soft);
+    border-left: 3px solid var(--primary);
+    border-radius: 6px;
 }
 
 .answer-row strong {
     display: block;
-    color: #444;
+    color: var(--text-soft);
     margin-bottom: 0.25rem;
-}
-
-fieldset {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-legend {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     font-weight: 600;
-    padding: 0 0.5rem;
 }

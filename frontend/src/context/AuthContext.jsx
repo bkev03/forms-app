@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -24,6 +24,15 @@ export function AuthProvider({ children }) {
         setUser(null);
         setToken(null);
     }
+
+    useEffect(() => {
+        function handleExpired() {
+            setUser(null);
+            setToken(null);
+        }
+        window.addEventListener('auth:expired', handleExpired);
+        return () => window.removeEventListener('auth:expired', handleExpired);
+    }, []);
 
     return (
         <AuthContext.Provider value={{ user, token, login, logout }}>

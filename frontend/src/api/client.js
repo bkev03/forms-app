@@ -25,6 +25,12 @@ async function apiRequest(path, options = {}) {
         data = await response.text();
     }
 
+    if (response.status === 401 && token) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.dispatchEvent(new CustomEvent('auth:expired'));
+    }
+
     if (!response.ok) {
         const message = (data && (data.error || data.message)) || response.statusText;
         const error = new Error(message);
