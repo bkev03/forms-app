@@ -57,7 +57,11 @@ export async function getMyResponses(req, res) {
         const skip = (page - 1) * limit;
 
         const [data, total] = await Promise.all([
-            Response.find({ userId: req.user._id }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+            Response.find({ userId: req.user._id })
+                .populate('formId', 'title')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
             Response.countDocuments({ userId: req.user._id })
         ]);
 
