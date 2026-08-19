@@ -71,7 +71,7 @@ export default function SignupPage() {
                             checked={role === 'filler'}
                             onChange={() => setRole('filler')}
                         />
-                        Fill out forms (Kitöltő)
+                        Fill out forms (Filler)
                     </label>
                     <label className="radio">
                         <input
@@ -80,7 +80,7 @@ export default function SignupPage() {
                             checked={role === 'editor'}
                             onChange={() => setRole('editor')}
                         />
-                        Create forms (Szerkesztő)
+                        Create forms (Editor)
                     </label>
                 </fieldset>
                 {error && <div className="error">{error}</div>}

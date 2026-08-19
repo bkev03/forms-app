@@ -140,6 +140,12 @@ input, textarea, select {
     font-family: inherit;
     background: #fff;
     color: var(--text);
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: vertical;
+    max-width: 100%;
 }
 
 input:focus, textarea:focus, select:focus {
